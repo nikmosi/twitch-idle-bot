@@ -1,0 +1,11 @@
+services:
+  app:
+    tty: true
+    build: .
+    env_file:
+      - .env
+    ports:
+      - 8081:8000
+    volumes:
+      - ./var/:/app/var/
+    stop_grace_period: 20s
