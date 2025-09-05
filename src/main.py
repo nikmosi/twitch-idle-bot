@@ -12,8 +12,15 @@ async def main():
     settings = Settings()
     twitch = await authenticate(settings)
     client = TwichClient(twitch, settings.target_channels)
-    await client.start()
+    try:
+        await client.start()
+    finally:
+        client.stop()
+        await twitch.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pass
