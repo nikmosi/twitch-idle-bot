@@ -26,7 +26,6 @@ class TwichClient:
     async def start(self) -> None:
         await self.chat
         self.chat.start()
-        await self.chat.join()
 
     def stop(self) -> None:
         self.chat.stop()
