@@ -12,8 +12,12 @@ async def main():
     settings = Settings()
     twitch = await authenticate(settings)
     client = TwichClient(twitch, settings.target_channels)
+
     try:
         await client.start()
+        while True:
+            logger.info("live")
+            await asyncio.sleep(60)
     finally:
         client.stop()
         await twitch.close()

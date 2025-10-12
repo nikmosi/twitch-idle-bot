@@ -1,13 +1,7 @@
 # syntax=docker/dockerfile:1
-FROM ghcr.io/astral-sh/uv:alpine
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm
 
 ENV TERM xterm-256color
-
-RUN apk add --no-cache ca-certificates openssl gcompat \
-  && update-ca-certificates 
-
-
-ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
 WORKDIR /app
 
