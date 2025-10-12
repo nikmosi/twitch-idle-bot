@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from litestar import Controller, MediaType, get, status_codes
+from litestar.background_tasks import BackgroundTask
 from litestar.params import Parameter
 from litestar.response import Redirect, Response
 from loguru import logger
@@ -26,6 +27,7 @@ class AuthController(Controller):
         logger.debug("compliting auth")
         msg: str = "Auth complete. You can close this tab."
         exit_code = status_codes.HTTP_200_OK
+        background = None
         try:
             await auth_service.verify(code, state_)
         except TwitchAPIException:
@@ -38,7 +40,7 @@ class AuthController(Controller):
             msg = "Missing code"
             exit_code = status_codes.HTTP_400_BAD_REQUEST
         else:
-            auth_service.complete()
+            background = BackgroundTask(auth_service.complete)
             logger.info("complete auth")
         # FIX: Literal[Auth ...] instead str type
-        return Response(str(msg), status_code=exit_code)
+        return Response(str(msg), status_code=exit_code, background=background)
