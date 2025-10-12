@@ -1,7 +1,8 @@
+import inspect
 import json
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import cast
+from typing import TypeAlias, cast
 
 from loguru import logger
 from twitchAPI.oauth import UserAuthenticator
@@ -9,6 +10,8 @@ from twitchAPI.twitch import Twitch
 from twitchAPI.type import AuthScope
 
 from ..exceptions import CodeError, StateError
+
+OnComplete: TypeAlias = Callable[[], Awaitable[None] | None]
 
 
 class AuthService:
@@ -22,7 +25,7 @@ class AuthService:
         self.user_scope = user_scope
         self.auth = auth
         self.twitch = twitch
-        self.on_complete: list[Callable[[], None]] = []
+        self.on_complete: list[OnComplete] = []
         self.storage_path = storage_path
 
     def get_link(self) -> str:
@@ -41,9 +44,11 @@ class AuthService:
             json.dump({"token": token, "refresh": refresh}, _f)
         await self.twitch.set_user_authentication(token, self.user_scope, refresh)
 
-    def subscribe_on_complete(self, callback: Callable[[], None]) -> None:
+    def subscribe_on_complete(self, callback: OnComplete) -> None:
         self.on_complete.append(callback)
 
-    def complete(self) -> None:
+    async def complete(self) -> None:
         for func in self.on_complete:
-            func()
+            result = func()
+            if inspect.isawaitable(result):
+                await result
