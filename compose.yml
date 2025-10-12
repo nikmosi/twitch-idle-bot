@@ -8,4 +8,5 @@ services:
       - 8081:8000
     volumes:
       - ./var/:/app/var/
+    restart: "unless-stopped"
     stop_grace_period: 20s
