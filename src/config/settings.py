@@ -22,3 +22,5 @@ class Settings(BaseSettings):
     port: int = 8000
 
     storage_path: Path = Path("./var/token.json")
+    heartbeat_path: Path = Path("./var/heartbeat")
+    heartbeat_interval_seconds: float = 10.0
