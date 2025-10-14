@@ -4,6 +4,8 @@ import asyncio
 import time
 from pathlib import Path
 
+from loguru import logger
+
 
 class Heartbeat:
     """Persist heartbeat information to a file at a fixed interval."""
@@ -12,6 +14,7 @@ class Heartbeat:
         self.path = Path(path)
         self.interval = float(interval)
         self._task: asyncio.Task[None] | None = None
+        self._stop_event = asyncio.Event()
 
     async def start(self) -> None:
         """Start writing heartbeat signals."""
@@ -28,21 +31,21 @@ class Heartbeat:
         if self._task is None:
             return
 
-        self._task.cancel()
+        self._stop_event.set()
         try:
-            await self._task
-        except asyncio.CancelledError:
-            pass
+            await asyncio.wait_for(self._task, timeout=5)
+        except asyncio.CancelledError as e:
+            logger.opt(exception=e).warning("Cancelled heartbeat task.")
         finally:
             self._task = None
 
     async def _run(self) -> None:
-        try:
-            while True:
-                await asyncio.sleep(self.interval)
-                self._write_heartbeat()
-        except asyncio.CancelledError:
-            raise
+        while not self._stop_event.is_set():
+            try:
+                await asyncio.wait_for(self._stop_event.wait(), timeout=self.interval)
+            except asyncio.CancelledError:
+                logger.debug("waiting stop event")
+            self._write_heartbeat()
 
     def _write_heartbeat(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
