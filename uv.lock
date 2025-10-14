@@ -1048,6 +1048,7 @@ dependencies = [
     { name = "loguru" },
     { name = "pydantic-settings" },
     { name = "pytest" },
+    { name = "rich" },
     { name = "twitchapi" },
 ]
 
@@ -1058,6 +1059,7 @@ requires-dist = [
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pydantic-settings", specifier = ">=2.10.1" },
     { name = "pytest", specifier = ">=8.4.1" },
+    { name = "rich", specifier = ">=14.2.0" },
     { name = "twitchapi", specifier = ">=4.5.0" },
 ]
 
