@@ -6,7 +6,7 @@ import pytest
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
 
-from twitch.twitch_client import TwichClient
+from twitch.twitch_client import ChatEvent, TwichClient
 
 
 @pytest.fixture
@@ -23,9 +23,11 @@ async def test_client_start_and_stop():
             self.start = Mock()
             self.join = AsyncMock()
             self.stop = Mock()
+            self.handlers = {}
 
         def register_event(self, *args, **kwargs):
-            pass
+            event, handler = args
+            self.handlers[event] = handler
 
         def __await__(self):
             async def _inner():
@@ -37,6 +39,13 @@ async def test_client_start_and_stop():
         client = TwichClient(twitch, [])
         await client.start()
         client.chat.start.assert_called_once()
-        client.chat.join.assert_called_once()
         client.stop()
         client.chat.stop.assert_called_once()
+
+        assert ChatEvent.READY in client.chat.handlers
+
+        ready_event = Mock()
+        ready_event.chat.join_room = AsyncMock()
+
+        await client.chat.handlers[ChatEvent.READY](ready_event)
+        ready_event.chat.join_room.assert_awaited_once()
